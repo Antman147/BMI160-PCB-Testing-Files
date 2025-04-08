@@ -1,0 +1,66 @@
+import processing.serial.*;
+
+Serial myPort;
+float[] sensorData = new float[3]; // To store pitch, roll, and yaw data
+
+// Scaling factors to fine-tune movement
+float scaleX = 0.02;
+float scaleY = 0.02;
+float scaleZ = 0.001;
+
+// Smoothness factor for gradual movement
+float smoothness = 0.9;
+float[] lastSensorData = new float[3]; // To store previous sensor data for smoothing
+
+void setup() {
+  size(800, 600, P3D);
+  myPort = new Serial(this, "COM4", 115200); // Set to COM4
+  for (int i = 0; i < 3; i++) {
+    lastSensorData[i] = 0;
+  }
+}
+
+void draw() {
+  background(0); // Set background to black
+  
+  // Read data from the serial port
+  while (myPort.available() > 0) {
+    String data = myPort.readStringUntil('\n');
+    if (data != null) {
+      String[] values = data.trim().split(",");
+      if (values.length == 3) {
+        for (int i = 0; i < 3; i++) {
+          float currentData = Float.parseFloat(values[i]);
+          // Apply smoothing
+          sensorData[i] = smoothness * lastSensorData[i] + (1 - smoothness) * currentData;
+          lastSensorData[i] = sensorData[i];
+        }
+      }
+    }
+  }
+  
+  // Set up the cube's rotation based on the pitch, roll, and yaw data
+  float pitch = -sensorData[0] * scaleX;
+  float roll = -sensorData[1] * scaleY;
+  float yaw = sensorData[2] * scaleZ;
+  
+  translate(width / 2, height / 2);
+  rotateX(roll);
+  rotateY(yaw);
+  rotateZ(pitch);
+  
+  // Draw the flat cuboid
+  noStroke();
+  fill(0, 0, 255); // Set cube color to blue
+  box(200, 50, 200); // Draw the cuboid with reduced height
+  
+  // Draw text on the front side of the cuboid
+  pushMatrix();
+  translate(0, 0, 110); // Move text to the front face of the cuboid
+  
+  textSize(32);
+  fill(255); // Set text color to white
+  textAlign(CENTER, CENTER);
+  text("SUPERB TECH", 0, 0);
+  popMatrix();
+}
