@@ -61,6 +61,6 @@ void draw() {
   textSize(32);
   fill(255); // Set text color to white
   textAlign(CENTER, CENTER);
-  text("SUPERB TECH", 0, 0);
+  text("IlikeTurtles", 0, 0);
   popMatrix();
 }
